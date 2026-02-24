@@ -13,7 +13,7 @@ __pycache__/
 venv/
 env/
 
-# Job inputs, personal profile, and generated output (keep local only)
-data/jobs/
-data/user_profile.yaml
+# Presentation inputs, metadata, and generated output (keep local only)
+data/presentations/
+data/metadata.yaml
 output/
