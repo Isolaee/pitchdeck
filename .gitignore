@@ -1,0 +1,19 @@
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Job inputs, personal profile, and generated output (keep local only)
+data/jobs/
+data/user_profile.yaml
+output/
