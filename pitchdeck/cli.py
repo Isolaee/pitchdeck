@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from pitchdeck.llm import DEFAULT_MODEL
+from pitchdeck.llm import DEFAULT_BACKEND, DEFAULT_OLLAMA_MODEL, DEFAULT_OPENAI_MODEL, BACKEND_OPENAI
 from pitchdeck.loader import load_presentation
 from pitchdeck.metadata import load_metadata
 
@@ -16,7 +16,7 @@ _DEFAULT_OUTPUT_DIR = _REPO_ROOT / "output"
 
 def main() -> None:
 	parser = argparse.ArgumentParser(
-		description="Generate a pitchdeck voiceover script using a local LLM via Ollama."
+		description="Generate a pitchdeck voiceover script using a local or cloud LLM."
 	)
 	parser.add_argument(
 		"--input",
@@ -33,9 +33,19 @@ def main() -> None:
 		help="Path to metadata.yaml (default: data/metadata.yaml)",
 	)
 	parser.add_argument(
+		"--backend",
+		default=DEFAULT_BACKEND,
+		choices=["ollama", "openai"],
+		help="LLM backend to use (default: ollama)",
+	)
+	parser.add_argument(
 		"--model",
-		default=DEFAULT_MODEL,
-		help=f"Ollama model name (default: {DEFAULT_MODEL})",
+		default=None,
+		help=(
+			f"Model name override. "
+			f"Ollama default: {DEFAULT_OLLAMA_MODEL}, "
+			f"OpenAI default: {DEFAULT_OPENAI_MODEL}"
+		),
 	)
 	parser.add_argument(
 		"--output",
@@ -51,6 +61,7 @@ def main() -> None:
 	presentation.metadata = metadata
 
 	# Prompt building and LLM call are implemented in a later phase.
+	print(f"Backend: {args.backend}  |  Model: {args.model or '(default)'}")
 	print(f"Loaded {len(presentation.slides)} slides from '{args.input.name}'")
 	print(f"Title: {metadata.get('title')}  |  Author: {metadata.get('author')}")
 	for slide in presentation.slides:
