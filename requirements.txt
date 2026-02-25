@@ -1,9 +1,1 @@
-# Runtime
-ollama>=0.4.0
-pyyaml>=6.0
-python-pptx>=0.6.23
 
-# Dev / test
-pytest>=8.0
-pytest-mock>=3.14
-ruff>=0.9.0
