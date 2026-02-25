@@ -15,6 +15,7 @@ define( 'PITCHDECK_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-db.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-pptx-parser.php';
+require_once PITCHDECK_PLUGIN_DIR . 'includes/class-pdf-parser.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-rest-api.php';
 
 // Create DB table on activation.
@@ -57,8 +58,8 @@ function pitchdeck_shortcode_render( array $atts ): string {
     ?>
     <div id="pitchdeck-app">
         <form id="pitchdeck-upload-form" enctype="multipart/form-data">
-            <label for="pitchdeck-file">Upload your PPTX file:</label>
-            <input type="file" id="pitchdeck-file" name="pptx_file" accept=".pptx" required />
+            <label for="pitchdeck-file">Upload your PPTX or PDF file:</label>
+            <input type="file" id="pitchdeck-file" name="pptx_file" accept=".pptx,.pdf" required />
             <button type="submit">Extract Slides</button>
         </form>
         <div id="pitchdeck-status"></div>

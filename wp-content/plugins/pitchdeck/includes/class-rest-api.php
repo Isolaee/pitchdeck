@@ -59,8 +59,8 @@ class Pitchdeck_REST_API {
 
         // Validate extension.
         $ext = strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) );
-        if ( 'pptx' !== $ext ) {
-            return new WP_Error( 'invalid_file_type', 'Only .pptx files are accepted.', [ 'status' => 415 ] );
+        if ( ! in_array( $ext, [ 'pptx', 'pdf' ], true ) ) {
+            return new WP_Error( 'invalid_file_type', 'Only .pptx or .pdf files are accepted.', [ 'status' => 415 ] );
         }
 
         // Move to WP uploads/pitchdeck/.
@@ -69,15 +69,19 @@ class Pitchdeck_REST_API {
         wp_mkdir_p( $dest_dir );
 
         $job_id = self::generate_uuid_v4();
-        $dest   = $dest_dir . $job_id . '.pptx';
+        $dest   = $dest_dir . $job_id . '.' . $ext;
 
         if ( ! move_uploaded_file( $file['tmp_name'], $dest ) ) {
             return new WP_Error( 'upload_failed', 'Could not save the uploaded file.', [ 'status' => 500 ] );
         }
 
-        // Parse the PPTX.
+        // Parse the file.
         try {
-            $slides = Pitchdeck_PPTX_Parser::parse( $dest );
+            if ( 'pdf' === $ext ) {
+                $slides = Pitchdeck_PDF_Parser::parse( $dest );
+            } else {
+                $slides = Pitchdeck_PPTX_Parser::parse( $dest );
+            }
         } catch ( RuntimeException $e ) {
             @unlink( $dest );
             return new WP_Error( 'parse_failed', $e->getMessage(), [ 'status' => 422 ] );
