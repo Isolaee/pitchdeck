@@ -64,7 +64,7 @@
             saveSection.style.display = 'block';
 
         } catch (err) {
-            setStatus('Network error during upload. Please try again.', 'error');
+            setStatus('Upload failed: ' + err.message, 'error');
             console.error('Pitchdeck upload error:', err);
         }
     }
