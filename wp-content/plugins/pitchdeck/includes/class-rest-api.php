@@ -75,6 +75,10 @@ class Pitchdeck_REST_API {
             return new WP_Error( 'upload_failed', 'Could not save the uploaded file.', [ 'status' => 500 ] );
         }
 
+        // Give the parser more room for large files.
+        set_time_limit( 120 );
+        wp_raise_memory_limit( 'image' );
+
         // Parse the file.
         try {
             if ( 'pdf' === $ext ) {

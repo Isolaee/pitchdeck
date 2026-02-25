@@ -13,6 +13,10 @@ define( 'PITCHDECK_VERSION',    '0.1.0' );
 define( 'PITCHDECK_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PITCHDECK_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
+if ( file_exists( PITCHDECK_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
+    require_once PITCHDECK_PLUGIN_DIR . 'vendor/autoload.php';
+}
+
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-db.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-pptx-parser.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-pdf-parser.php';
