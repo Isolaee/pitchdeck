@@ -1,39 +1,46 @@
 <?php
 
-// Pitchdeck vendor autoloader — replaces composer-generated autoload.php
-// Loads smalot/pdfparser (PSR-0) and symfony/polyfill-mbstring (PSR-4 + bootstrap file)
+// Pitchdeck vendor autoloader — standalone, no Composer\Autoload\ClassLoader dependency.
+// Registers PSR-0 (smalot/pdfparser) and PSR-4 (symfony/polyfill-mbstring) via spl_autoload_register.
 
-require_once __DIR__ . '/composer/ClassLoader.php';
-
-$loader = new \Composer\Autoload\ClassLoader();
+$vendorDir = __DIR__;
 
 // PSR-0: smalot/pdfparser
-// For PSR-0, $path is the base dir that already contains the namespace folder structure.
-// e.g. path = vendor/smalot/pdfparser/src, class Smalot\PdfParser\Parser
-//   => src/Smalot/PdfParser/Parser.php  ✓
-$namespaces = require __DIR__ . '/composer/autoload_namespaces.php';
-foreach ($namespaces as $namespace => $paths) {
-    foreach ((array) $paths as $path) {
-        $loader->add($namespace, $path);
+// Class Smalot\PdfParser\Foo => vendor/smalot/pdfparser/src/Smalot/PdfParser/Foo.php
+$psr0Base = $vendorDir . '/smalot/pdfparser/src';
+
+spl_autoload_register(function ($class) use ($psr0Base) {
+    if (strpos($class, 'Smalot\\') !== 0) {
+        return;
     }
-}
+    $file = $psr0Base . DIRECTORY_SEPARATOR
+          . str_replace(['\\', '_'], DIRECTORY_SEPARATOR, $class)
+          . '.php';
+    if (file_exists($file)) {
+        require $file;
+    }
+}, true, false);
 
 // PSR-4: symfony/polyfill-mbstring
-$psr4 = require __DIR__ . '/composer/autoload_psr4.php';
-foreach ($psr4 as $namespace => $paths) {
-    foreach ((array) $paths as $path) {
-        $loader->addPsr4($namespace, $path);
+// Class Symfony\Polyfill\Mbstring\Foo => vendor/symfony/polyfill-mbstring/Foo.php
+$polyfillBase = $vendorDir . '/symfony/polyfill-mbstring';
+$polyfillPrefix = 'Symfony\\Polyfill\\Mbstring\\';
+
+spl_autoload_register(function ($class) use ($polyfillBase, $polyfillPrefix) {
+    if (strpos($class, $polyfillPrefix) !== 0) {
+        return;
     }
-}
-
-$loader->register(true);
-
-// Files (bootstrap includes)
-$files = require __DIR__ . '/composer/autoload_files.php';
-foreach ($files as $file) {
+    $relative = substr($class, strlen($polyfillPrefix));
+    $file = $polyfillBase . DIRECTORY_SEPARATOR
+          . str_replace('\\', DIRECTORY_SEPARATOR, $relative)
+          . '.php';
     if (file_exists($file)) {
-        require_once $file;
+        require $file;
     }
-}
+}, true, false);
 
-return $loader;
+// Bootstrap file for polyfill-mbstring (registers mb_* function shims if ext-mbstring missing).
+$bootstrap = $polyfillBase . '/bootstrap.php';
+if (file_exists($bootstrap)) {
+    require_once $bootstrap;
+}
