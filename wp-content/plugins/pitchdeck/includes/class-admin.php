@@ -144,7 +144,7 @@ class Pitchdeck_Admin {
                     'Authorization' => 'Bearer ' . $api_key,
                 ],
                 'body' => wp_json_encode( [
-                    'model' => 'gpt-4o-mini',
+                    'model' => 'gpt-5-nano',
                     'input' => 'write a haiku about ai',
                     'store' => true,
                 ] ),
