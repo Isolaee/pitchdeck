@@ -79,9 +79,9 @@ class Pitchdeck_OpenAI {
         $lines[] = '--- SLIDES ---';
 
         foreach ( $slides as $slide ) {
-            $num        = (int) ( $slide['slide_number'] ?? $slide->slide_number ?? 0 );
-            $text       = trim( $slide['slide_text']  ?? $slide->slide_text  ?? '' );
-            $extra      = trim( $slide['extra_info']  ?? $slide->extra_info  ?? '' );
+            $num        = (int) self::slide_field( $slide, 'slide_number', 0 );
+            $text       = trim( self::slide_field( $slide, 'slide_text', '' ) );
+            $extra      = trim( self::slide_field( $slide, 'extra_info', '' ) );
 
             $lines[] = '';
             $lines[] = "Slide {$num}:";
@@ -120,12 +120,27 @@ class Pitchdeck_OpenAI {
 
         // Fallback: if a slide is missing from the response, insert a placeholder.
         foreach ( $slides as $slide ) {
-            $num = (int) ( $slide['slide_number'] ?? $slide->slide_number ?? 0 );
+            $num = (int) self::slide_field( $slide, 'slide_number', 0 );
             if ( $num > 0 && ! isset( $result[ $num ] ) ) {
                 $result[ $num ] = '';
             }
         }
 
         return $result;
+    }
+
+    /**
+     * Read a field from a slide that may be a stdClass object (from DB) or an array.
+     *
+     * @param object|array $slide
+     * @param string       $field
+     * @param mixed        $default
+     * @return mixed
+     */
+    private static function slide_field( $slide, string $field, $default ) {
+        if ( is_object( $slide ) ) {
+            return $slide->$field ?? $default;
+        }
+        return $slide[ $field ] ?? $default;
     }
 }
