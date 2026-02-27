@@ -9,10 +9,12 @@
     let currentSlides = [];
 
     document.addEventListener('DOMContentLoaded', function () {
-        const form    = document.getElementById('pitchdeck-upload-form');
-        const saveBtn = document.getElementById('pitchdeck-save-btn');
-        if (form)    form.addEventListener('submit', handleUpload);
-        if (saveBtn) saveBtn.addEventListener('click', handleSave);
+        const form        = document.getElementById('pitchdeck-upload-form');
+        const saveBtn     = document.getElementById('pitchdeck-save-btn');
+        const generateBtn = document.getElementById('pitchdeck-generate-btn');
+        if (form)        form.addEventListener('submit', handleUpload);
+        if (saveBtn)     saveBtn.addEventListener('click', handleSave);
+        if (generateBtn) generateBtn.addEventListener('click', handleGenerateScript);
     });
 
     /**
@@ -138,14 +140,85 @@
             }
 
             setStatus(
-                `Saved ${data.saved_count} slide(s). Job ID: ${currentJobId}`,
+                `Saved ${data.saved_count} slide(s). Now click Generate Script to create voiceover scripts.`,
                 'success'
             );
+
+            // Show the Generate Script button after a successful save.
+            const generateBtn = document.getElementById('pitchdeck-generate-btn');
+            if (generateBtn) generateBtn.style.display = 'inline-block';
 
         } catch (err) {
             setStatus('Network error during save. Please try again.', 'error');
             console.error('Pitchdeck save error:', err);
         }
+    }
+
+    /**
+     * Call POST /generate-script, then render the returned scripts per slide.
+     */
+    async function handleGenerateScript() {
+        if (!currentJobId) {
+            setStatus('No job loaded. Please upload and save slides first.', 'error');
+            return;
+        }
+
+        const generateBtn   = document.getElementById('pitchdeck-generate-btn');
+        const scriptSection = document.getElementById('pitchdeck-script-section');
+
+        generateBtn.disabled = true;
+        setStatus('Generating scripts via OpenAI\u2026 this may take a few seconds.', 'info');
+
+        try {
+            const response = await fetch(`${rest_url}/generate-script`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce':   nonce,
+                },
+                body: JSON.stringify({ job_id: currentJobId }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setStatus(`Script generation failed: ${data.message || 'Unknown error.'}`, 'error');
+                return;
+            }
+
+            renderScripts(data.scripts);
+            scriptSection.style.display = 'block';
+            setStatus(`Scripts generated for ${data.scripts.length} slide(s). Review and edit below.`, 'success');
+
+        } catch (err) {
+            setStatus('Network error during script generation. Please try again.', 'error');
+            console.error('Pitchdeck generate error:', err);
+        } finally {
+            generateBtn.disabled = false;
+        }
+    }
+
+    /**
+     * Render generated scripts as editable textareas, one per slide.
+     */
+    function renderScripts(scripts) {
+        const container = document.getElementById('pitchdeck-scripts-container');
+        container.innerHTML = '';
+
+        scripts.forEach(function (item) {
+            const card = document.createElement('div');
+            card.className = 'pitchdeck-script-card';
+
+            card.innerHTML = `
+                <h3>Slide ${item.slide_number}</h3>
+                <textarea
+                    id="script-text-${item.slide_number}"
+                    class="pitchdeck-script-textarea"
+                    rows="4"
+                >${escapeHtml(item.script_text || '')}</textarea>`;
+
+            container.appendChild(card);
+        });
     }
 
     function setStatus(message, type) {

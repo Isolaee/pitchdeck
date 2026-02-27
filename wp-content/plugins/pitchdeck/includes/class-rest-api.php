@@ -15,6 +15,19 @@ class Pitchdeck_REST_API {
             'permission_callback' => [ __CLASS__, 'check_permissions' ],
         ] );
 
+        register_rest_route( self::NAMESPACE, '/generate-script', [
+            'methods'             => WP_REST_Server::CREATABLE,
+            'callback'            => [ __CLASS__, 'handle_generate_script' ],
+            'permission_callback' => [ __CLASS__, 'check_permissions' ],
+            'args'                => [
+                'job_id' => [
+                    'required'          => true,
+                    'type'              => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ],
+            ],
+        ] );
+
         register_rest_route( self::NAMESPACE, '/save-slides', [
             'methods'             => WP_REST_Server::CREATABLE,
             'callback'            => [ __CLASS__, 'handle_save_slides' ],
@@ -130,6 +143,46 @@ class Pitchdeck_REST_API {
         return rest_ensure_response( [
             'success'     => true,
             'saved_count' => count( $slides ),
+        ] );
+    }
+
+    /**
+     * POST /wp-json/pitchdeck/v1/generate-script
+     *
+     * Accepts: application/json { job_id: string }
+     * Returns: { success: bool, scripts: [{slide_number, script_text}, ...] }
+     */
+    public static function handle_generate_script( WP_REST_Request $request ) {
+        $job_id = $request->get_param( 'job_id' );
+
+        $slides = Pitchdeck_DB::get_slides_by_job( $job_id );
+
+        if ( empty( $slides ) ) {
+            return new WP_Error( 'no_slides', 'No slides found for this job. Save slides first.', [ 'status' => 404 ] );
+        }
+
+        try {
+            set_time_limit( 120 );
+            $scripts = Pitchdeck_OpenAI::generate_scripts( $slides );
+        } catch ( RuntimeException $e ) {
+            return new WP_Error( 'openai_error', $e->getMessage(), [ 'status' => 502 ] );
+        }
+
+        Pitchdeck_DB::save_scripts( $job_id, $scripts );
+
+        // Format for the frontend: array of {slide_number, script_text}.
+        $output = [];
+        foreach ( $scripts as $slide_number => $script_text ) {
+            $output[] = [
+                'slide_number' => $slide_number,
+                'script_text'  => $script_text,
+            ];
+        }
+        usort( $output, fn( $a, $b ) => $a['slide_number'] <=> $b['slide_number'] );
+
+        return rest_ensure_response( [
+            'success' => true,
+            'scripts' => $output,
         ] );
     }
 

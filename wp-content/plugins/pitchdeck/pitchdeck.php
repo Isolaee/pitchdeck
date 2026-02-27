@@ -20,6 +20,7 @@ if ( file_exists( PITCHDECK_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-db.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-pptx-parser.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-pdf-parser.php';
+require_once PITCHDECK_PLUGIN_DIR . 'includes/class-openai.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-rest-api.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-admin.php';
 
@@ -76,6 +77,11 @@ function pitchdeck_shortcode_render( array $atts ): string {
         <div id="pitchdeck-slides-container"></div>
         <div id="pitchdeck-save-section" style="display:none;">
             <button id="pitchdeck-save-btn">Save Slide Notes</button>
+            <button id="pitchdeck-generate-btn" style="display:none;">Generate Script</button>
+        </div>
+        <div id="pitchdeck-script-section" style="display:none;">
+            <h2>Generated Scripts</h2>
+            <div id="pitchdeck-scripts-container"></div>
         </div>
     </div>
     <?php

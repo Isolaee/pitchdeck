@@ -20,6 +20,7 @@ class Pitchdeck_DB {
             slide_number INT(11)             NOT NULL,
             slide_text   LONGTEXT            NOT NULL DEFAULT '',
             extra_info   LONGTEXT            NOT NULL DEFAULT '',
+            script_text  LONGTEXT            NOT NULL DEFAULT '',
             created_at   DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),
             KEY idx_job_id (job_id)
@@ -67,7 +68,6 @@ class Pitchdeck_DB {
 
     /**
      * Retrieve all slides for a job, ordered by slide_number.
-     * Used in Phase 3 (script generation).
      *
      * @param string $job_id
      * @return array Array of row objects.
@@ -81,5 +81,37 @@ class Pitchdeck_DB {
                 $job_id
             )
         );
+    }
+
+    /**
+     * Persist generated script text for each slide of a job.
+     * Updates only the script_text column; leaves all other columns intact.
+     *
+     * @param string $job_id
+     * @param array  $scripts  Keyed by slide_number (int) => script string.
+     * @return bool True if all updates succeeded.
+     */
+    public static function save_scripts( string $job_id, array $scripts ): bool {
+        global $wpdb;
+        $table   = $wpdb->prefix . self::TABLE_NAME;
+        $success = true;
+
+        foreach ( $scripts as $slide_number => $script_text ) {
+            $result = $wpdb->update(
+                $table,
+                [ 'script_text' => sanitize_textarea_field( $script_text ) ],
+                [
+                    'job_id'       => $job_id,
+                    'slide_number' => (int) $slide_number,
+                ],
+                [ '%s' ],
+                [ '%s', '%d' ]
+            );
+            if ( false === $result ) {
+                $success = false;
+            }
+        }
+
+        return $success;
     }
 }
