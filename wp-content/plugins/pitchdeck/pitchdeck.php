@@ -77,6 +77,12 @@ function pitchdeck_shortcode_render( array $atts ): string {
         <div id="pitchdeck-slides-container"></div>
         <div id="pitchdeck-save-section" style="display:none;">
             <button id="pitchdeck-save-btn">Save Slide Notes</button>
+            <label for="pitchdeck-language" style="margin-left:16px;">Script language:</label>
+            <select id="pitchdeck-language">
+                <option value="Finnish">Finnish</option>
+                <option value="English">English</option>
+                <option value="Swedish">Swedish</option>
+            </select>
             <button id="pitchdeck-generate-btn" style="display:none;">Generate Script</button>
         </div>
         <div id="pitchdeck-script-section" style="display:none;">

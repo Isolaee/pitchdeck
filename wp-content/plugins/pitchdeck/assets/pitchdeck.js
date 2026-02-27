@@ -170,13 +170,16 @@
         setStatus('Generating scripts via OpenAI\u2026 this may take a few seconds.', 'info');
 
         try {
+            const langSelect = document.getElementById('pitchdeck-language');
+            const language   = langSelect ? langSelect.value : 'Finnish';
+
             const response = await fetch(`${rest_url}/generate-script`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-WP-Nonce':   nonce,
                 },
-                body: JSON.stringify({ job_id: currentJobId }),
+                body: JSON.stringify({ job_id: currentJobId, language }),
             });
 
             const data = await response.json();

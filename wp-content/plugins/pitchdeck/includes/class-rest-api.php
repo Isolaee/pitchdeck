@@ -25,6 +25,12 @@ class Pitchdeck_REST_API {
                     'type'              => 'string',
                     'sanitize_callback' => 'sanitize_text_field',
                 ],
+                'language' => [
+                    'required'          => false,
+                    'type'              => 'string',
+                    'default'           => 'Finnish',
+                    'sanitize_callback' => 'sanitize_text_field',
+                ],
             ],
         ] );
 
@@ -153,7 +159,8 @@ class Pitchdeck_REST_API {
      * Returns: { success: bool, scripts: [{slide_number, script_text}, ...] }
      */
     public static function handle_generate_script( WP_REST_Request $request ) {
-        $job_id = $request->get_param( 'job_id' );
+        $job_id   = $request->get_param( 'job_id' );
+        $language = $request->get_param( 'language' ) ?: 'Finnish';
 
         $slides = Pitchdeck_DB::get_slides_by_job( $job_id );
 
@@ -163,7 +170,7 @@ class Pitchdeck_REST_API {
 
         try {
             set_time_limit( 120 );
-            $scripts = Pitchdeck_OpenAI::generate_scripts( $slides );
+            $scripts = Pitchdeck_OpenAI::generate_scripts( $slides, $language );
         } catch ( RuntimeException $e ) {
             return new WP_Error( 'openai_error', $e->getMessage(), [ 'status' => 502 ] );
         }

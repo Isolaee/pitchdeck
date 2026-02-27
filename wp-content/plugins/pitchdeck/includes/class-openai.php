@@ -10,13 +10,13 @@ class Pitchdeck_OpenAI {
      * @return array           Keyed by slide_number, value is the generated script string.
      * @throws RuntimeException On API error or unexpected response shape.
      */
-    public static function generate_scripts( array $slides ): array {
+    public static function generate_scripts( array $slides, string $language = 'Finnish' ): array {
         $api_key = Pitchdeck_Admin::get_openai_api_key();
         if ( empty( $api_key ) ) {
             throw new RuntimeException( 'OpenAI API key is not configured. Set it in Settings > Pitchdeck.' );
         }
 
-        $prompt = self::build_prompt( $slides );
+        $prompt = self::build_prompt( $slides, $language );
 
         $response = wp_remote_post(
             'https://api.openai.com/v1/chat/completions',
@@ -63,12 +63,13 @@ class Pitchdeck_OpenAI {
     /**
      * Build a single prompt that requests a JSON array with one script per slide.
      */
-    private static function build_prompt( array $slides ): string {
+    private static function build_prompt( array $slides, string $language = 'Finnish' ): string {
         $lines = [];
-        $lines[] = 'Generate voiceover scripts for each slide listed below.';
+        $lines[] = "Generate voiceover scripts for each slide listed below. Write every script in {$language}.";
         $lines[] = '';
         $lines[] = 'Requirements:';
         $lines[] = '- Each script must be 2-5 natural spoken sentences.';
+        $lines[] = "- Language: {$language}. Do not use any other language.";
         $lines[] = '- Plain text only. No markdown, no formatting.';
         $lines[] = '- Suitable for text-to-speech.';
         $lines[] = '- Incorporate the extra instructions when provided.';
