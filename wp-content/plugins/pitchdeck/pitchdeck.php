@@ -21,12 +21,18 @@ require_once PITCHDECK_PLUGIN_DIR . 'includes/class-db.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-pptx-parser.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-pdf-parser.php';
 require_once PITCHDECK_PLUGIN_DIR . 'includes/class-rest-api.php';
+require_once PITCHDECK_PLUGIN_DIR . 'includes/class-admin.php';
 
 // Create DB table on activation.
 register_activation_hook( __FILE__, [ 'Pitchdeck_DB', 'create_table' ] );
 
 // Boot REST API.
 add_action( 'rest_api_init', [ 'Pitchdeck_REST_API', 'register_routes' ] );
+
+// Boot admin settings.
+if ( is_admin() ) {
+    Pitchdeck_Admin::init();
+}
 
 // Register shortcode.
 add_shortcode( 'pitchdeck', 'pitchdeck_shortcode_render' );
